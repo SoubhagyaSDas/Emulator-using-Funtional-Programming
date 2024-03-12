@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "vLhh1niwFdh0yLZN0F8H9yXXH+Apa+kxV1uAxRayhCS27IVye7kksbdBNRMlAiEgstv98JhiUnSfUPbF4hdQqA==",
+  "success": true,
+  "projectFilePath": "/Users/soubhagyadas/Documents/GitHub/Emulator-using-Funtional-Programming/Emulator-using-Funtional-Programming.fsproj",
+  "expectedPackageFiles": [
+    "/Users/soubhagyadas/.nuget/packages/fsharp.core/8.0.100/fsharp.core.8.0.100.nupkg.sha512"
+  ],
+  "logs": []
+}
