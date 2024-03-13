@@ -10,7 +10,7 @@ open System.Reflection
 [<assembly: System.Reflection.AssemblyCompanyAttribute("Emulator-using-Funtional-Programming")>]
 [<assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")>]
 [<assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")>]
-[<assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cec5c41f16cc5769b2c21f7df0a1d8a8dd56b191")>]
+[<assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6b80f44ed42c20f2b776ab90b19505adba024aba")>]
 [<assembly: System.Reflection.AssemblyProductAttribute("Emulator-using-Funtional-Programming")>]
 [<assembly: System.Reflection.AssemblyTitleAttribute("Emulator-using-Funtional-Programming")>]
 [<assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")>]

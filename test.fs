@@ -1,4 +1,4 @@
-﻿open System
+open System
 
 let rec dec_to_bin decimal =
     let rec dec_to_bin_helper decimal acc =
