@@ -27,7 +27,9 @@ let perform_and hexValue1 hexValue2 =
     let decValue2 = Convert.ToInt32(hexValue2, 16)
     let binaryValue1 = dec_to_bin decValue1
     let binaryValue2 = dec_to_bin decValue2
-    let result = List.map2 (&&&) binaryValue1 binaryValue2
+    let paddedBinary1 = List.rev (List.init (8 - List.length binaryValue1) (fun _ -> 0) @ binaryValue1)
+    let paddedBinary2 = List.rev (List.init (8 - List.length binaryValue2) (fun _ -> 0) @ binaryValue2)
+    let result = List.map2 (&&&) paddedBinary1 paddedBinary2
     let resultDec = bin_to_dec (List.rev result)
     (result, resultDec)
 
@@ -36,7 +38,9 @@ let perform_or hexValue1 hexValue2 =
     let decValue2 = Convert.ToInt32(hexValue2, 16)
     let binaryValue1 = dec_to_bin decValue1
     let binaryValue2 = dec_to_bin decValue2
-    let result = List.map2 (|||) binaryValue1 binaryValue2
+    let paddedBinary1 = List.rev (List.init (8 - List.length binaryValue1) (fun _ -> 0) @ binaryValue1)
+    let paddedBinary2 = List.rev (List.init (8 - List.length binaryValue2) (fun _ -> 0) @ binaryValue2)
+    let result = List.map2 (|||) paddedBinary1 paddedBinary2
     let resultDec = bin_to_dec (List.rev result)
     (result, resultDec)
 
@@ -45,27 +49,54 @@ let perform_xor hexValue1 hexValue2 =
     let decValue2 = Convert.ToInt32(hexValue2, 16)
     let binaryValue1 = dec_to_bin decValue1
     let binaryValue2 = dec_to_bin decValue2
-    let result = List.map2 (^^^) binaryValue1 binaryValue2
+    let paddedBinary1 = List.rev (List.init (8 - List.length binaryValue1) (fun _ -> 0) @ binaryValue1)
+    let paddedBinary2 = List.rev (List.init (8 - List.length binaryValue2) (fun _ -> 0) @ binaryValue2)
+    let result = List.map2 (^^^) paddedBinary1 paddedBinary2
     let resultDec = bin_to_dec (List.rev result)
     (result, resultDec)
 
-let perform_add hexValue1 hexValue2 =
-    let decValue1 = Convert.ToInt32(hexValue1, 16)
-    let decValue2 = Convert.ToInt32(hexValue2, 16)
-    let binaryValue1 = dec_to_bin decValue1
-    let binaryValue2 = dec_to_bin decValue2
-    let resultBin = List.map2 (+) binaryValue1 binaryValue2
-    let resultDec = bin_to_dec (List.rev resultBin)
-    (resultBin, resultDec)
+let rec perform_add binList1 binList2 =
+    let rec add_binary_lists list1 list2 carry acc =
+        match list1, list2 with
+        | [], [] ->
+            if carry = 1 then 1 :: acc
+            else acc
+        | bit1::rest1, bit2::rest2 ->
+            let sum = bit1 + bit2 + carry
+            let new_bit = sum % 2
+            let new_carry = sum / 2
+            add_binary_lists rest1 rest2 new_carry (new_bit :: acc)
+        | _, _ -> failwith "Invalid input lengths for addition"
+    
+    let reversedResult = add_binary_lists (List.rev binList1) (List.rev binList2) 0 []
+    let result = List.rev reversedResult
 
-let perform_sub hexValue1 hexValue2 =
-    let decValue1 = Convert.ToInt32(hexValue1, 16)
-    let decValue2 = Convert.ToInt32(hexValue2, 16)
-    let binaryValue1 = dec_to_bin decValue1
-    let binaryValue2 = dec_to_bin decValue2
-    let resultBin = List.map2 (-) binaryValue1 binaryValue2
-    let resultDec = bin_to_dec (List.rev resultBin)
-    (resultBin, resultDec)
+    if List.length result <= 8 then
+        (result, bin_to_dec result)
+    else
+        failwith "Overflow occurred during addition"
+
+let rec perform_sub binList1 binList2 =
+    let rec sub_binary_lists list1 list2 borrow acc =
+        match list1, list2 with
+        | [], [] ->
+            if borrow = 1 then failwith "Subtraction resulted in negative value"
+            else acc
+        | bit1::rest1, bit2::rest2 ->
+            let diff = bit1 - bit2 - borrow
+            let new_bit, new_borrow =
+                if diff < 0 then (diff + 2, 1)
+                else (diff, 0)
+            sub_binary_lists rest1 rest2 new_borrow (new_bit :: acc)
+        | _, _ -> failwith "Invalid input lengths for subtraction"
+    
+    let reversedResult = sub_binary_lists (List.rev binList1) (List.rev binList2) 0 []
+    let result = List.rev reversedResult
+
+    if List.length result <= 8 then
+        (result, bin_to_dec result)
+    else
+        failwith "Overflow occurred during subtraction"
 
 let rec emulator () =
     printfn "Enter the operation you want to perform (NOT, OR, AND, XOR, ADD, SUB or QUIT): "
@@ -115,22 +146,24 @@ let rec emulator () =
         let number1 = int(Console.ReadLine())
         printfn "Enter a number between -128 and 127: "
         let number2 = int(Console.ReadLine())
-        let (resultBin, resultDec) = perform_add (sprintf "%X" number1) (sprintf "%X" number2)
+        let (result, _) = perform_add (dec_to_bin number1) (dec_to_bin number2)
+        let resultDec = bin_to_dec result
         printfn "       [%A] = %d" (dec_to_bin number1) number1
         printfn "ADD    [%A] = %d" (dec_to_bin number2) number2
         printfn "--------------------------------------------"
-        printfn "       [%A] = %d" (List.map string resultBin) resultDec
+        printfn "       [%A] = %d" (List.map string result) resultDec
         emulator ()
     | "sub" -> 
         printfn "Enter a number between -128 and 127: "
         let number1 = int(Console.ReadLine())
         printfn "Enter a number between -128 and 127: "
         let number2 = int(Console.ReadLine())
-        let (resultBin, resultDec) = perform_sub (sprintf "%X" number1) (sprintf "%X" number2)
+        let (result, _) = perform_sub (dec_to_bin number1) (dec_to_bin number2)
+        let resultDec = bin_to_dec result
         printfn "       [%A] = %d" (dec_to_bin number1) number1
         printfn "SUB    [%A] = %d" (dec_to_bin number2) number2
         printfn "--------------------------------------------"
-        printfn "       [%A] = %d" (List.map string resultBin) resultDec
+        printfn "       [%A] = %d" (List.map string result) resultDec
         emulator ()
     | "quit" -> printfn "Goodbye!"
     | _ -> 
