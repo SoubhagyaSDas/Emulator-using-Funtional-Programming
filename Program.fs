@@ -22,36 +22,19 @@ let perform_not hexValue =
     let resultDec = bin_to_dec (List.rev result)
     (result, resultDec)
 
-let perform_and hexValue1 hexValue2 =
+let perform_binary_operation operation hexValue1 hexValue2 =
     let decValue1 = Convert.ToInt32(hexValue1, 16)
     let decValue2 = Convert.ToInt32(hexValue2, 16)
     let binaryValue1 = dec_to_bin decValue1
     let binaryValue2 = dec_to_bin decValue2
     let paddedBinary1 = List.rev (List.init (8 - List.length binaryValue1) (fun _ -> 0) @ binaryValue1)
     let paddedBinary2 = List.rev (List.init (8 - List.length binaryValue2) (fun _ -> 0) @ binaryValue2)
-    let result = List.map2 (&&&) paddedBinary1 paddedBinary2
-    let resultDec = bin_to_dec (List.rev result)
-    (result, resultDec)
-
-let perform_or hexValue1 hexValue2 =
-    let decValue1 = Convert.ToInt32(hexValue1, 16)
-    let decValue2 = Convert.ToInt32(hexValue2, 16)
-    let binaryValue1 = dec_to_bin decValue1
-    let binaryValue2 = dec_to_bin decValue2
-    let paddedBinary1 = List.rev (List.init (8 - List.length binaryValue1) (fun _ -> 0) @ binaryValue1)
-    let paddedBinary2 = List.rev (List.init (8 - List.length binaryValue2) (fun _ -> 0) @ binaryValue2)
-    let result = List.map2 (|||) paddedBinary1 paddedBinary2
-    let resultDec = bin_to_dec (List.rev result)
-    (result, resultDec)
-
-let perform_xor hexValue1 hexValue2 =
-    let decValue1 = Convert.ToInt32(hexValue1, 16)
-    let decValue2 = Convert.ToInt32(hexValue2, 16)
-    let binaryValue1 = dec_to_bin decValue1
-    let binaryValue2 = dec_to_bin decValue2
-    let paddedBinary1 = List.rev (List.init (8 - List.length binaryValue1) (fun _ -> 0) @ binaryValue1)
-    let paddedBinary2 = List.rev (List.init (8 - List.length binaryValue2) (fun _ -> 0) @ binaryValue2)
-    let result = List.map2 (^^^) paddedBinary1 paddedBinary2
+    let result =
+        match operation with
+        | "and" -> List.map2 (&&&) paddedBinary1 paddedBinary2
+        | "or" -> List.map2 (|||) paddedBinary1 paddedBinary2
+        | "xor" -> List.map2 (^^^) paddedBinary1 paddedBinary2
+        | _ -> failwith "Invalid binary operation"
     let resultDec = bin_to_dec (List.rev result)
     (result, resultDec)
 
@@ -71,10 +54,9 @@ let rec perform_add binList1 binList2 =
     let reversedResult = add_binary_lists (List.rev binList1) (List.rev binList2) 0 []
     let result = List.rev reversedResult
 
-    if List.length result <= 8 then
-        (result, bin_to_dec result)
-    else
-        failwith "Overflow occurred during addition"
+    let decimalResult = bin_to_dec result
+    printfn "       %d + %d = %d" (bin_to_dec binList1) (bin_to_dec binList2) decimalResult
+    (result, decimalResult)
 
 let rec perform_sub binList1 binList2 =
     let rec sub_binary_lists list1 list2 borrow acc =
@@ -108,36 +90,14 @@ let rec emulator () =
         let (result, resultDec) = perform_not hexValue
         printfn "Result of NOT [%A] = [%A] = %X" (dec_to_bin (Convert.ToInt32(hexValue, 16))) (List.map string result) resultDec
         emulator ()
-    | "and" -> 
+    | "and" | "or" | "xor" -> 
         printfn "Enter Hex value between 00 and FF: "
         let hexValue1 = Console.ReadLine()
         printfn "Enter Hex value between 00 and FF: "
         let hexValue2 = Console.ReadLine()
-        let (result, resultDec) = perform_and hexValue1 hexValue2
+        let (result, resultDec) = perform_binary_operation operation hexValue1 hexValue2
         printfn "       [%A] = %s" (dec_to_bin (Convert.ToInt32(hexValue1, 16))) hexValue1
-        printfn "AND    [%A] = %s" (dec_to_bin (Convert.ToInt32(hexValue2, 16))) hexValue2
-        printfn "--------------------------------------------"
-        printfn "       [%A] = %X" (List.map string result) resultDec
-        emulator ()
-    | "or" -> 
-        printfn "Enter Hex value between 00 and FF: "
-        let hexValue1 = Console.ReadLine()
-        printfn "Enter Hex value between 00 and FF: "
-        let hexValue2 = Console.ReadLine()
-        let (result, resultDec) = perform_or hexValue1 hexValue2
-        printfn "       [%A] = %s" (dec_to_bin (Convert.ToInt32(hexValue1, 16))) hexValue1
-        printfn "OR     [%A] = %s" (dec_to_bin (Convert.ToInt32(hexValue2, 16))) hexValue2
-        printfn "--------------------------------------------"
-        printfn "       [%A] = %X" (List.map string result) resultDec
-        emulator ()
-    | "xor" -> 
-        printfn "Enter Hex value between 00 and FF: "
-        let hexValue1 = Console.ReadLine()
-        printfn "Enter Hex value between 00 and FF: "
-        let hexValue2 = Console.ReadLine()
-        let (result, resultDec) = perform_xor hexValue1 hexValue2
-        printfn "       [%A] = %s" (dec_to_bin (Convert.ToInt32(hexValue1, 16))) hexValue1
-        printfn "XOR    [%A] = %s" (dec_to_bin (Convert.ToInt32(hexValue2, 16))) hexValue2
+        printfn "%s    [%A] = %s" (operation.ToUpper()) (dec_to_bin (Convert.ToInt32(hexValue2, 16))) hexValue2
         printfn "--------------------------------------------"
         printfn "       [%A] = %X" (List.map string result) resultDec
         emulator ()
